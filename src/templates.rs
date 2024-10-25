@@ -1,13 +1,15 @@
 use askama::Template;
 
-// pub struct Container {
-//     pub id: String,
-//     pub description: String,
-// }
 #[derive(Debug)]
 pub struct Player {
     pub id: String,
     pub name: String,
+}
+
+#[derive(Debug)]
+pub struct Team {
+    pub name: String,
+    pub link: String,
 }
 
 // MODELS ^^^ |||| TEMPLATES VVV
@@ -20,6 +22,12 @@ pub struct Index {}
 #[template(path = "players.html")]
 pub struct Players {
     pub data: Vec<Player>,
+}
+
+#[derive(Template)]
+#[template(path = "teams.html")]
+pub struct Teams {
+    pub data: Vec<Team>,
 }
 
 // #[derive(Template)]
