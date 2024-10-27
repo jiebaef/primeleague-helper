@@ -1,28 +1,6 @@
-use crate::templates::{Player, Players, Team, Teams};
+use crate::models::{Player, Team};
+use crate::templates::Teams;
 use scraper::{ElementRef, Html, Selector};
-
-pub(crate) async fn get_players() -> Result<Players, ()> {
-    let match_request_text = reqwest::get("https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve")
-        .await
-        .expect("Could not download game")
-        .text()
-        .await
-        .expect("Could not read text from response");
-
-    let match_document = Html::parse_document(&match_request_text);
-
-    let teams = extract_players(&match_document);
-
-    let mut players: Vec<Player> = Vec::new();
-
-    for team in teams {
-        for x in team {
-            players.push(x);
-        }
-    }
-
-    return Ok(Players { data: players });
-}
 
 pub(crate) async fn get_teams() -> Result<Teams, ()> {
     let match_request_text = reqwest::get("https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve")
@@ -37,6 +15,21 @@ pub(crate) async fn get_teams() -> Result<Teams, ()> {
     let teams = extract_teams(&match_document);
 
     return Ok(Teams { data: teams });
+}
+
+pub(crate) async fn get_split() -> Result<String, ()> {
+    let match_request_text = reqwest::get("https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve")
+        .await
+        .expect("Could not download game")
+        .text()
+        .await
+        .expect("Could not read text from response");
+
+    let match_document = Html::parse_document(&match_request_text);
+
+    let split = extract_split(&match_document);
+
+    Ok("testsplit".into())
 }
 
 fn extract_teams(match_document: &Html) -> Vec<Team> {
@@ -73,7 +66,7 @@ fn extract_players(match_document: &Html) -> Vec<Vec<Player>> {
 
         if players_span_texts[2].to_lowercase() == "lineup_submit" {
             let team = get_team(&players_span_texts[3]);
-            players.push(team.players);
+            players.push(team.data);
         }
     }
 
@@ -103,7 +96,7 @@ fn get_team(span_text: &str) -> Team {
         players.push(parse_player(player_string));
     }
 
-    Team { players }
+    Team { data: players }
 }
 
 fn parse_player(player_string: &str) -> Player {

@@ -1,24 +1,16 @@
-<!-- <tr id="team-{{ team.name }}"> -->
-<!-- 	<td> {{ team.name }} </td> -->
-<!-- 	<td> {{ team.link }} </td> -->
-<!-- </tr> -->
-
-{% for player in players %}
-{% include "player.html" %}
-{% endfor %}
-
-<!-- <div id="team-container"> -->
-<!-- 	<table> -->
-<!-- 		<!-- <thead> --> -->
-<!-- 		<!-- 	<tr> --> -->
-<!-- 		<!-- 		<th>ID</th> --> -->
-<!-- 		<!-- 		<th>Name</th> --> -->
-<!-- 		<!-- 	</tr> --> -->
-<!-- 		<!-- </thead> --> -->
-<!-- 		<tbody id="player-content"> -->
-<!-- 			{% for player in players %} -->
-<!-- 			{% include "player.html" %} -->
-<!-- 			{% endfor %} -->
-<!-- 		</tbody> -->
-<!-- 	</table> -->
-<!-- </div> -->
+<div id="player-container">
+	<h2>Team: </h2>
+	<table>
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Name</th>
+			</tr>
+		</thead>
+		<tbody id="player-content">
+			{% for player in team.data %}
+			{% include "player.html" %}
+			{% endfor %}
+		</tbody>
+	</table>
+</div>

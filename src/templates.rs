@@ -1,15 +1,5 @@
+use crate::models::Team;
 use askama::Template;
-
-#[derive(Debug)]
-pub struct Player {
-    pub id: String,
-    pub name: String,
-}
-
-#[derive(Debug)]
-pub struct Team {
-    pub players: Vec<Player>,
-}
 
 // MODELS ^^^ |||| TEMPLATES VVV
 
@@ -18,19 +8,18 @@ pub struct Team {
 pub struct Index {}
 
 #[derive(Template)]
-#[template(path = "players.html")]
-pub struct Players {
-    pub data: Vec<Player>,
-}
-
-#[derive(Template)]
 #[template(path = "teams.html")]
 pub struct Teams {
     pub data: Vec<Team>,
 }
 
-// #[derive(Template)]
-// #[template(path = "containers.html")]
-// pub struct Containers {
-//     pub containers: Vec<Container>,
-// }
+#[derive(Template)]
+#[template(path = "split.html")]
+pub struct Split {
+    pub split: String,
+}
+
+pub struct MatchDetails {
+    pub split: String,
+    pub teams: Teams,
+}

@@ -1,4 +1,5 @@
 mod index;
+mod models;
 mod players;
 mod routes;
 mod templates;
