@@ -6,5 +6,6 @@ pub(crate) struct Player {
 
 #[derive(Debug)]
 pub(crate) struct Team {
+    pub name: String,
     pub data: Vec<Player>,
 }
