@@ -1,45 +1,84 @@
+use crate::db::{get_value, set_value, Db};
 use crate::models::{Player, Team};
 use crate::templates::Teams;
+
+use axum::Extension;
 use scraper::{ElementRef, Html, Selector};
 
 const MATCH: &str =
     "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
 
-pub(crate) async fn get_teams() -> Result<Teams, ()> {
-    let match_request_text = reqwest::get(MATCH)
-        .await
-        .expect("Could not download game")
-        .text()
-        .await
-        .expect("Could not read text from response");
+pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, ()> {
+    let value = get_value(Extension(&db), MATCH.to_string()).await;
 
-    let match_document = Html::parse_document(&match_request_text);
+    let match_document: Html;
+
+    if let Some(value) = value {
+        match_document = Html::parse_document(&value);
+    } else {
+        let match_request_text = reqwest::get(MATCH)
+            .await
+            .expect("Could not download game")
+            .text()
+            .await
+            .expect("Could not read text from response");
+
+        let value = set_value(
+            Extension(&db),
+            MATCH.to_string(),
+            match_request_text.clone(),
+        )
+        .await;
+
+        match value {
+            Ok(value) => {
+                match_document = Html::parse_document(&value);
+            }
+            Err(e) => {
+                eprintln!("{:?}", e);
+                return Err(());
+            }
+        }
+    }
 
     let teams = extract_teams(&match_document);
 
     return Ok(Teams { data: teams });
 }
 
-pub(crate) async fn get_split() -> Result<String, ()> {
-    let match_request_text = reqwest::get(MATCH)
-        .await
-        .expect("Could not download game")
-        .text()
-        .await
-        .expect("Could not read text from response");
+pub(crate) async fn get_split(Extension(db): Extension<Db>) -> Result<String, ()> {
+    let value = get_value(Extension(&db), MATCH.to_string()).await;
 
-    let match_document = Html::parse_document(&match_request_text);
+    let match_document: Html;
 
-    let split = extract_split(&match_document);
+    if let Some(value) = value {
+        match_document = Html::parse_document(&value);
+    } else {
+        let match_request_text = reqwest::get(MATCH)
+            .await
+            .expect("Could not download game")
+            .text()
+            .await
+            .expect("Could not read text from response");
 
-    if let Some(split) = split {
-        return Ok(split.to_string());
+        let value = set_value(
+            Extension(&db),
+            MATCH.to_string(),
+            match_request_text.clone(),
+        )
+        .await;
+
+        match value {
+            Ok(value) => {
+                match_document = Html::parse_document(&value);
+            }
+            Err(e) => {
+                eprintln!("{:?}", e);
+                return Err(());
+            }
+        }
     }
 
-    Err(())
-}
-
-fn extract_split(match_document: &Html) -> Option<&str> {
     let split_selector = Selector::parse(
         "div.page-header-content > div > ul > li.breadcrumbs-item:nth-child(2) > a",
     )
@@ -47,11 +86,11 @@ fn extract_split(match_document: &Html) -> Option<&str> {
 
     for element in match_document.select(&split_selector) {
         if let Some(href) = element.value().attr("href") {
-            return Some(href);
+            return Ok(href.to_string());
         }
     }
 
-    return None;
+    Err(())
 }
 
 fn extract_teams(match_document: &Html) -> Vec<Team> {
