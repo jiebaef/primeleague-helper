@@ -19,7 +19,7 @@ pub struct Split {
     pub split: String,
 }
 
-pub struct MatchDetails {
-    pub split: String,
-    pub teams: Teams,
-}
+// pub struct MatchDetails {
+//     pub split: String,
+//     pub teams: Teams,
+// }
