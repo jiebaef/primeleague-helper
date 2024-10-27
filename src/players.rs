@@ -29,7 +29,12 @@ pub(crate) async fn get_split() -> Result<String, ()> {
 
     let split = extract_split(&match_document);
 
-    Ok("testsplit".into())
+    Ok(split)
+}
+
+fn extract_split(match_document: &Html) -> String {
+    let split_selector = Selector::parse("");
+    "".into()
 }
 
 fn extract_teams(match_document: &Html) -> Vec<Team> {
