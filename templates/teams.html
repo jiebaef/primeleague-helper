@@ -1,15 +1,18 @@
-<div id="team-container">
-	<table>
-		<thead>
-			<tr>
-				<th>Name</th>
-				<th>Link</th>
-			</tr>
-		</thead>
-		<tbody id="team-content">
-			{% for team in data %}
-			{% include "team.html" %}
-			{% endfor %}
-		</tbody>
-	</table>
-</div>
+{% for team in data %}
+{% include "team.html" %}
+{% endfor %}
+<!-- <div id="team-container"> -->
+<!-- 	<table> -->
+<!-- 		<!-- <thead> --> -->
+<!-- 		<!-- 	<tr> --> -->
+<!-- 		<!-- 		<th>Name</th> --> -->
+<!-- 		<!-- 		<th>Link</th> --> -->
+<!-- 		<!-- 	</tr> --> -->
+<!-- 		<!-- </thead> --> -->
+<!-- 		<tbody id="team-content"> -->
+<!-- 			{% for team in data %} -->
+<!-- 			{% include "team.html" %} -->
+<!-- 			{% endfor %} -->
+<!-- 		</tbody> -->
+<!-- 	</table> -->
+<!-- </div> -->

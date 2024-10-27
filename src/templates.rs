@@ -8,8 +8,7 @@ pub struct Player {
 
 #[derive(Debug)]
 pub struct Team {
-    pub name: String,
-    pub link: String,
+    pub players: Vec<Player>,
 }
 
 // MODELS ^^^ |||| TEMPLATES VVV
