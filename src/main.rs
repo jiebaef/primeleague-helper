@@ -1,8 +1,8 @@
 mod db;
 mod index;
 mod models;
-mod players;
 mod routes;
+mod teams;
 mod templates;
 
 use crate::db::Db;

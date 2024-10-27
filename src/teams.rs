@@ -172,6 +172,7 @@ fn parse_player(player_string: &str) -> Player {
     Player {
         id: id_name[0].into(),
         name: id_name[1].into(),
+        link: "".into(),
     }
 }
 
