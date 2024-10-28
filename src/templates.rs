@@ -13,12 +13,6 @@ pub struct Teams {
     pub data: Vec<Team>,
 }
 
-#[derive(Template)]
-#[template(path = "split.html")]
-pub struct Split {
-    pub split: String,
-}
-
 // pub struct MatchDetails {
 //     pub split: String,
 //     pub teams: Teams,

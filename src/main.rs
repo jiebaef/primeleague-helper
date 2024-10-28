@@ -1,4 +1,5 @@
 mod db;
+mod helper;
 mod index;
 mod models;
 mod routes;
