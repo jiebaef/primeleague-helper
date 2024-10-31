@@ -3,8 +3,10 @@ use crate::helper::elementref_text;
 use crate::models::{Player, Team};
 use crate::templates::Teams;
 
+use askama_axum::Response;
 use axum::Extension;
 use scraper::{ElementRef, Html, Selector};
+use tower::util::error::optional::None;
 
 const MATCH: &str =
     "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
@@ -42,12 +44,12 @@ pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, ()>
         }
     }
 
-    let teams = extract_teams(&match_document);
+    let teams = extract_teams(&match_document).await;
 
     return Ok(Teams { data: teams? });
 }
 
-fn extract_teams(match_document: &Html) -> Result<Vec<Team>, ()> {
+async fn extract_teams(match_document: &Html) -> Result<Vec<Team>, ()> {
     let mut teams: Vec<Team> = Vec::new();
 
     let logs_selector = Selector::parse("section.league-match-logs > div > div > div > table.table.table-flex.table-responsive.table-static > tbody > tr").expect("Could not create logs_selector");
@@ -73,7 +75,9 @@ fn extract_teams(match_document: &Html) -> Result<Vec<Team>, ()> {
                 &players_span_texts[3],
                 &team_names,
                 &split_link,
-            ) {
+            )
+            .await
+            {
                 teams.push(team);
             }
         }
@@ -111,7 +115,7 @@ fn get_players_span_texts(
     players_span_text
 }
 
-fn get_team(
+async fn get_team(
     submitter_text: &str,
     span_text: &str,
     team_names: &Vec<String>,
@@ -127,7 +131,7 @@ fn get_team(
             let player_texts = span_text.split(',');
 
             for player_string in player_texts {
-                players.push(parse_player(player_string, &split_link));
+                players.push(parse_player(player_string, &split_link).await);
             }
 
             return Some(Team {
@@ -151,13 +155,13 @@ fn get_team_index(submitter_text: &str) -> Option<usize> {
     None
 }
 
-fn parse_player(player_string: &str, split_link: &str) -> Player {
+async fn parse_player(player_string: &str, split_link: &str) -> Player {
     let id_name = player_string.trim().split(':').collect::<Vec<_>>();
 
     let id = id_name[0];
     let name = id_name[1];
     let link = format!("{}/users/{}-{}", split_link, id, name);
-    let game_account = get_game_account(&link);
+    let game_account = get_game_account(&link).await;
 
     Player {
         id: id.into(),
@@ -179,7 +183,20 @@ fn get_team_names(match_document: &Html) -> Vec<String> {
     team_names
 }
 
-fn get_game_account(link: &str) -> String {
+async fn get_game_account(link: &str) -> Option<String> {
     eprintln!("implement retrieving user page and extracting game account");
-    link.into()
+    let user_request = reqwest::get(link).await;
+    match user_request {
+        Ok(user_request) => {
+            let x = user_request.text().await;
+            return Some("".into());
+        }
+        Err(e) => {
+            eprintln!("Could not retrieve split_link from website: {}", e);
+            return None;
+        }
+    }
+
+    // link.into()
+    Some("".into())
 }
