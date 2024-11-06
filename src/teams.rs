@@ -99,7 +99,7 @@ fn get_split_link(match_document: &Html) -> Option<&str> {
     )
     .expect("Could not create split_selector");
 
-    for element in match_document.select(&split_selector) {
+    if let Some(element) = match_document.select(&split_selector).next() {
         if let Some(href) = element.value().attr("href") {
             return Some(href);
         }
@@ -163,16 +163,16 @@ fn get_team_index(submitter_text: &str) -> Option<usize> {
 }
 
 fn parse_player(player_string: &str, split_link: &str) -> Player {
-    let id_name = player_string.trim().split(':').collect::<Vec<_>>();
+    let mut id_name = player_string.trim().split(':');
 
-    let id = id_name[0];
-    let name = id_name[1];
+    let id = id_name.next().unwrap_or("ERR id").to_string();
+    let name = id_name.next().unwrap_or("ERR name").to_string();
     let link = format!("{}/users/{}-{}", split_link, id, name);
     let game_account = get_game_account(&link).expect("Could not retrieve game account");
 
     Player {
-        id: id.into(),
-        name: name.into(),
+        id,
+        name,
         link,
         game_account,
     }
@@ -191,25 +191,25 @@ fn get_team_names(match_document: &Html) -> Vec<String> {
 }
 
 fn get_game_account(link: &str) -> Option<String> {
-    let res = tokio::task::block_in_place(move || {
+    let user_request_text = tokio::task::block_in_place(move || {
         let user_request = reqwest::blocking::get(link).expect("couldnt get user account page");
         let user_request_text = user_request
             .text()
             .expect("could not get user account page response text");
-        let account_page_document = Html::parse_document(&user_request_text);
-        let game_account_selector = Selector::parse(
-            "ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",
-        )
-        .expect("could not create game account selector");
-        let mut summoner: Option<String> = None;
-        for summoner_elem in account_page_document.select(&&game_account_selector) {
-            summoner = Some(elementref_text(&summoner_elem, None));
-        }
-        return summoner;
+        return user_request_text;
     });
 
-    match res {
-        Some(res) => Some(res.into()),
-        None => Some("".into()),
+    let account_page_document = Html::parse_document(&user_request_text);
+    let game_account_selector = Selector::parse(
+        "ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",
+    )
+    .expect("could not create game account selector");
+
+    let game_account_element = account_page_document.select(&game_account_selector).next();
+
+    if let Some(game_account_element) = game_account_element {
+        return Some(elementref_text(&game_account_element, None));
     }
+
+    None
 }
