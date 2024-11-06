@@ -10,6 +10,7 @@ use scraper::{ElementRef, Html, Selector};
 const MATCH: &str =
     "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
 
+#[axum::debug_handler]
 pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, StatusCode> {
     let value = get_value(Extension(&db), MATCH.to_string()).await;
 
@@ -43,13 +44,20 @@ pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, Sta
         }
     }
 
-    let teams = extract_teams(&match_document).await;
-    match teams {}
-
-    return Ok(Teams { data: teams? });
+    let teams = extract_teams(match_document.clone());
+    match teams {
+        Ok(teams) => {
+            return Ok(Teams { data: teams });
+        }
+        Err(e) => {
+            eprintln!("{:?}", e);
+            return Err(reqwest::StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+    // return Ok(Teams { data: teams? });
 }
 
-async fn extract_teams(match_document: &Html) -> Result<Vec<Team>, ()> {
+fn extract_teams(match_document: Html) -> Result<Vec<Team>, ()> {
     let mut teams: Vec<Team> = Vec::new();
 
     let logs_selector = Selector::parse("section.league-match-logs > div > div > div > table.table.table-flex.table-responsive.table-static > tbody > tr").expect("Could not create logs_selector");
@@ -70,14 +78,13 @@ async fn extract_teams(match_document: &Html) -> Result<Vec<Team>, ()> {
         let players_span_texts = get_players_span_texts(table_rows, &action_span_selector);
 
         if players_span_texts[2].to_lowercase() == "lineup_submit" {
-            if let Some(team) = get_team(
+            let team = get_team(
                 &players_span_texts[1],
                 &players_span_texts[3],
                 &team_names,
                 &split_link,
-            )
-            .await
-            {
+            );
+            if let Some(team) = team {
                 teams.push(team);
             }
         }
@@ -115,7 +122,7 @@ fn get_players_span_texts(
     players_span_text
 }
 
-async fn get_team(
+fn get_team(
     submitter_text: &str,
     span_text: &str,
     team_names: &Vec<String>,
@@ -184,9 +191,25 @@ fn get_team_names(match_document: &Html) -> Vec<String> {
 }
 
 fn get_game_account(link: &str) -> Option<String> {
-    // eprintln!("implement retrieving user page and extracting game account");
-    // let user_request = reqwest::blocking::get(link).expect("couldnt get user account page");
-    // let x = user_request.text().expect("couldnt get user request text");
-    // return Some(x);
-    return Some("".into());
+    let res = tokio::task::block_in_place(move || {
+        let user_request = reqwest::blocking::get(link).expect("couldnt get user account page");
+        let user_request_text = user_request
+            .text()
+            .expect("could not get user account page response text");
+        let account_page_document = Html::parse_document(&user_request_text);
+        let game_account_selector = Selector::parse(
+            "ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",
+        )
+        .expect("could not create game account selector");
+        let mut summoner: Option<String> = None;
+        for summoner_elem in account_page_document.select(&&game_account_selector) {
+            summoner = Some(elementref_text(&summoner_elem, None));
+        }
+        return summoner;
+    });
+
+    match res {
+        Some(res) => Some(res.into()),
+        None => Some("".into()),
+    }
 }

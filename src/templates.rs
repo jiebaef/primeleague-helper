@@ -1,8 +1,6 @@
 use crate::models::Team;
 use askama::Template;
 
-// MODELS ^^^ |||| TEMPLATES VVV
-
 #[derive(Template)]
 #[template(path = "index.html")]
 pub struct Index {}
