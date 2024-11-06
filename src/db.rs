@@ -1,3 +1,4 @@
+use axum::handler::Handler;
 use axum::Extension;
 
 use std::collections::HashMap;
@@ -6,6 +7,10 @@ use std::sync::Arc;
 use tokio::sync::RwLock;
 
 pub(crate) type Db = Arc<RwLock<HashMap<String, String>>>;
+
+// impl Handler<_, _> for Db {
+//     // add code here
+// }
 
 pub(crate) async fn get_value(Extension(ref db): Extension<&Db>, key: String) -> Option<String> {
     // println!("DB,GET,{}", key);

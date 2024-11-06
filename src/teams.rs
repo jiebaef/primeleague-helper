@@ -3,15 +3,14 @@ use crate::helper::elementref_text;
 use crate::models::{Player, Team};
 use crate::templates::Teams;
 
-use askama_axum::Response;
+use axum::http::StatusCode;
 use axum::Extension;
 use scraper::{ElementRef, Html, Selector};
-use tower::util::error::optional::None;
 
 const MATCH: &str =
     "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
 
-pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, ()> {
+pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, StatusCode> {
     let value = get_value(Extension(&db), MATCH.to_string()).await;
 
     let match_document: Html;
@@ -39,12 +38,13 @@ pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, ()>
             }
             Err(e) => {
                 eprintln!("{:?}", e);
-                return Err(());
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
             }
         }
     }
 
     let teams = extract_teams(&match_document).await;
+    match teams {}
 
     return Ok(Teams { data: teams? });
 }
@@ -131,7 +131,7 @@ async fn get_team(
             let player_texts = span_text.split(',');
 
             for player_string in player_texts {
-                players.push(parse_player(player_string, &split_link).await);
+                players.push(parse_player(player_string, &split_link));
             }
 
             return Some(Team {
@@ -155,13 +155,13 @@ fn get_team_index(submitter_text: &str) -> Option<usize> {
     None
 }
 
-async fn parse_player(player_string: &str, split_link: &str) -> Player {
+fn parse_player(player_string: &str, split_link: &str) -> Player {
     let id_name = player_string.trim().split(':').collect::<Vec<_>>();
 
     let id = id_name[0];
     let name = id_name[1];
     let link = format!("{}/users/{}-{}", split_link, id, name);
-    let game_account = get_game_account(&link).await;
+    let game_account = get_game_account(&link).expect("Could not retrieve game account");
 
     Player {
         id: id.into(),
@@ -183,20 +183,10 @@ fn get_team_names(match_document: &Html) -> Vec<String> {
     team_names
 }
 
-async fn get_game_account(link: &str) -> Option<String> {
-    eprintln!("implement retrieving user page and extracting game account");
-    let user_request = reqwest::get(link).await;
-    match user_request {
-        Ok(user_request) => {
-            let x = user_request.text().await;
-            return Some("".into());
-        }
-        Err(e) => {
-            eprintln!("Could not retrieve split_link from website: {}", e);
-            return None;
-        }
-    }
-
-    // link.into()
-    Some("".into())
+fn get_game_account(link: &str) -> Option<String> {
+    // eprintln!("implement retrieving user page and extracting game account");
+    // let user_request = reqwest::blocking::get(link).expect("couldnt get user account page");
+    // let x = user_request.text().expect("couldnt get user request text");
+    // return Some(x);
+    return Some("".into());
 }
