@@ -10,4 +10,5 @@ pub(crate) struct Player {
 pub(crate) struct Team {
     pub name: String,
     pub data: Vec<Player>,
+    pub opgg: String,
 }

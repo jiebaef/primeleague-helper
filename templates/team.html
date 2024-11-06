@@ -1,11 +1,13 @@
 <div id="player-container">
 	<h1>Team: {{ team.name }} </h1>
+	<h4>OPGG: <a href="{{ team.opgg }}">{{ team.opgg }}</a></h4>
 	<table class="players">
 		<thead>
 			<tr>
 				<th>ID</th>
 				<th>Name</th>
 				<th>Link</th>
+				<th>Game Account</th>
 			</tr>
 		</thead>
 		<tbody id="player-content">

@@ -6,6 +6,7 @@ use crate::templates::Teams;
 use axum::http::StatusCode;
 use axum::Extension;
 use scraper::{ElementRef, Html, Selector};
+use urlencoding::encode;
 
 const MATCH: &str =
     "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
@@ -45,6 +46,7 @@ pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, Sta
     }
 
     let teams = extract_teams(match_document.clone());
+
     match teams {
         Ok(teams) => {
             return Ok(Teams { data: teams });
@@ -141,9 +143,20 @@ fn get_team(
                 players.push(parse_player(player_string, &split_link));
             }
 
+            let accounts = players
+                .iter()
+                .map(|player| player.game_account.as_str())
+                .collect::<Vec<&str>>()
+                .join(",");
+            let opgg = format!(
+                "https://www.op.gg/multisearch/euw?summoners={}",
+                encode(&accounts)
+            );
+
             return Some(Team {
                 name: name.to_string(),
                 data: players,
+                opgg,
             });
         }
         None => return None,
