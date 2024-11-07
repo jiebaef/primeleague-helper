@@ -5,6 +5,7 @@ mod routes;
 mod templates;
 
 use crate::db::Db;
+use crate::helper::init_selectors;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -29,16 +30,7 @@ pub(crate) struct Selectors {
 #[tokio::main]
 async fn main() {
     let db: Db = Arc::new(RwLock::new(HashMap::new()));
-
-    let selectors = Selectors {
-        logs: Selector::parse("section.league-match-logs > div > div > div > table.table.table-flex.table-responsive.table-static > tbody > tr").expect("Could not create logs_selector"),
-        action_span: Selector::parse("td > span").expect("Could not create action_span_selector"),
-        split_link: Selector::parse("div.page-header-content > div > ul > li.breadcrumbs-item:nth-child(2) > a",).expect("Could not create split_selector"),
-        team_names: Selector::parse("div.content-match-head-team > div > div > a > h2").expect("Could not create team_names_selector"),
-        team_links: Selector::parse("div.content-match-head-team-titles > a").expect("Could not create team_names_selector"),
-        team_participants: Selector::parse("").expect("Could not create team_names_selector"),
-        game_account: Selector::parse("ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",).expect("could not create game account selector"),
-    };
+    let selectors = init_selectors();
 
     let router = Router::new();
     let app = routes::add_routes(router)

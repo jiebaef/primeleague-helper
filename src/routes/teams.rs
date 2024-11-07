@@ -143,7 +143,7 @@ fn extract_teams_matchpage(
         }
     }
 
-    if teams.len() < 10 {
+    if teams.len() < 2 || teams.iter().map(|team| team.data.len()).sum::<usize>() < 10 {
         return Err("Could not retrieve teams".into());
     }
 
