@@ -22,6 +22,7 @@ pub(crate) async fn get_teams(
     Extension(db): Extension<Db>,
     Extension(selectors): Extension<Selectors>,
 ) -> Result<Teams, StatusCode> {
+    println!(">get_teams()");
     let match_url = params.match_url;
 
     let value = get_value(Extension(&db), &match_url).await;
@@ -56,20 +57,61 @@ pub(crate) async fn get_teams(
         }
     }
 
-    let teams = extract_teams(match_document, selectors);
+    let teams = extract_teams_matchpage(match_document.clone(), selectors.clone());
+
+    println!("\n\n\n");
 
     match teams {
         Ok(teams) => {
             return Ok(Teams { data: teams });
         }
         Err(e) => {
-            eprintln!("{:?}", e);
-            return Err(reqwest::StatusCode::INTERNAL_SERVER_ERROR);
+            if e == "Could not retrieve teams" {
+                let teams = extract_teams_teamspage(match_document, selectors);
+                match teams {
+                    Ok(teams) => {
+                        return Ok(Teams { data: teams });
+                    }
+                    Err(e) => {
+                        eprintln!("{:?}", e);
+                        return Err(reqwest::StatusCode::INTERNAL_SERVER_ERROR);
+                    }
+                }
+            } else {
+                eprintln!("{:?}", e);
+                return Err(reqwest::StatusCode::INTERNAL_SERVER_ERROR);
+            }
         }
     }
 }
 
-fn extract_teams(match_document: Html, selectors: Selectors) -> Result<Vec<Team>, ()> {
+fn extract_teams_teamspage(
+    match_document: Html,
+    selectors: Selectors,
+) -> Result<Vec<Team>, String> {
+    let mut teams: Vec<Team> = Vec::new();
+
+    let team_names = get_team_names(&match_document, selectors.team_names);
+
+    let team_links = get_team_links(&match_document, selectors.team_links);
+
+    let split_link = get_split_link(&match_document, selectors.split_link);
+    if split_link.is_none() {
+        return Err("Could not retrieve split_link from website".into());
+    }
+    let split_link = split_link.unwrap();
+
+    todo!("implement fallback");
+    for table_rows in match_document.select(&selectors.team_links) {}
+
+    Err("not implemented".into())
+}
+
+fn extract_teams_matchpage(
+    match_document: Html,
+    selectors: Selectors,
+) -> Result<Vec<Team>, String> {
+    println!(">extract_teams()");
     let mut teams: Vec<Team> = Vec::new();
 
     let logs_selector = selectors.logs;
@@ -80,8 +122,7 @@ fn extract_teams(match_document: Html, selectors: Selectors) -> Result<Vec<Team>
 
     let split_link = get_split_link(&match_document, selectors.split_link);
     if split_link.is_none() {
-        eprintln!("Could not retrieve split_link from website");
-        return Err(());
+        return Err("Could not retrieve split_link from website".into());
     }
     let split_link = split_link.unwrap();
 
@@ -102,10 +143,15 @@ fn extract_teams(match_document: Html, selectors: Selectors) -> Result<Vec<Team>
         }
     }
 
+    if teams.len() < 10 {
+        return Err("Could not retrieve teams".into());
+    }
+
     Ok(teams)
 }
 
 fn get_split_link(match_document: &Html, split_selector: Selector) -> Option<&str> {
+    println!(">get_split_link()");
     if let Some(element) = match_document.select(&split_selector).next() {
         if let Some(href) = element.value().attr("href") {
             return Some(href);
@@ -119,6 +165,7 @@ fn get_players_span_texts(
     table_rows: ElementRef<'_>,
     action_span_selector: &Selector,
 ) -> Vec<String> {
+    println!(">get_players_span_texts()");
     let mut players_span_text: Vec<String> = vec![];
 
     for span in table_rows.select(action_span_selector) {
@@ -136,6 +183,7 @@ fn get_team(
     split_link: &str,
     game_account_selector: &Selector,
 ) -> Option<Team> {
+    println!(">get_team()");
     let mut players: Vec<Player> = Vec::new();
 
     let team_index = get_team_index(submitter_text);
@@ -174,6 +222,7 @@ fn get_team(
 }
 
 fn get_team_index(submitter_text: &str) -> Option<usize> {
+    println!(">get_team_index()");
     const SEARCH_TERM: &str = "Team ";
     if let Some(start_index) = submitter_text.find(&SEARCH_TERM) {
         let number_index = start_index + SEARCH_TERM.len();
@@ -186,6 +235,7 @@ fn get_team_index(submitter_text: &str) -> Option<usize> {
 }
 
 fn parse_player(player_string: &str, split_link: &str, game_account_selector: &Selector) -> Player {
+    println!(">parse_player()");
     let mut id_name = player_string.trim().split(':');
 
     let id = id_name.next().unwrap_or("ERR id").to_string();
@@ -203,6 +253,7 @@ fn parse_player(player_string: &str, split_link: &str, game_account_selector: &S
 }
 
 fn get_team_names(match_document: &Html, team_names_selector: Selector) -> Vec<String> {
+    println!(">get_team_names()");
     let mut team_names: Vec<String> = Vec::new();
 
     for team_name in match_document.select(&team_names_selector) {
@@ -212,7 +263,19 @@ fn get_team_names(match_document: &Html, team_names_selector: Selector) -> Vec<S
     team_names
 }
 
+fn get_team_links(match_document: &Html, team_links_selector: Selector) -> Vec<String> {
+    println!(">get_team_links()");
+    let mut team_links: Vec<String> = Vec::new();
+
+    for team_link in match_document.select(&team_links_selector) {
+        team_links.push(elementref_text(&team_link, None));
+    }
+
+    team_links
+}
+
 fn get_game_account(link: &str, game_account_selector: &Selector) -> Option<String> {
+    println!(">get_game_account()");
     let user_request_text = tokio::task::block_in_place(move || {
         let user_request = reqwest::blocking::get(link).expect("couldnt get user account page");
         let user_request_text = user_request

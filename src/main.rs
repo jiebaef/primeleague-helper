@@ -21,6 +21,8 @@ pub(crate) struct Selectors {
     pub(crate) action_span: Selector,
     pub(crate) split_link: Selector,
     pub(crate) team_names: Selector,
+    pub(crate) team_links: Selector,
+    pub(crate) team_participants: Selector,
     pub(crate) game_account: Selector,
 }
 
@@ -33,6 +35,8 @@ async fn main() {
         action_span: Selector::parse("td > span").expect("Could not create action_span_selector"),
         split_link: Selector::parse("div.page-header-content > div > ul > li.breadcrumbs-item:nth-child(2) > a",).expect("Could not create split_selector"),
         team_names: Selector::parse("div.content-match-head-team > div > div > a > h2").expect("Could not create team_names_selector"),
+        team_links: Selector::parse("div.content-match-head-team-titles > a").expect("Could not create team_names_selector"),
+        team_participants: Selector::parse("").expect("Could not create team_names_selector"),
         game_account: Selector::parse("ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",).expect("could not create game account selector"),
     };
 
