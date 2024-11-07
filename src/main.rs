@@ -1,9 +1,7 @@
 mod db;
 mod helper;
-mod index;
 mod models;
 mod routes;
-mod teams;
 mod templates;
 
 use crate::db::Db;
@@ -15,8 +13,6 @@ use axum::{Extension, Router};
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
-
-const TEAM: &str = "HOME";
 
 #[tokio::main]
 async fn main() {

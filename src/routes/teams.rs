@@ -1,26 +1,37 @@
 use crate::db::{get_value, set_value, Db};
 use crate::helper::elementref_text;
-use crate::models::{Player, Team};
-use crate::templates::Teams;
+use crate::models::{player::Player, team::Team};
+use crate::templates::teams::Teams;
 
+use axum::extract::Query;
 use axum::http::StatusCode;
 use axum::Extension;
 use scraper::{ElementRef, Html, Selector};
+use serde::Deserialize;
 use urlencoding::encode;
 
-const MATCH: &str =
-    "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
+// const MATCH: &str = "https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve";
+
+#[derive(Deserialize)]
+pub struct GetTeamsParameters {
+    pub match_url: String,
+}
 
 #[axum::debug_handler]
-pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, StatusCode> {
-    let value = get_value(Extension(&db), MATCH.to_string()).await;
+pub(crate) async fn get_teams(
+    Query(params): Query<GetTeamsParameters>,
+    Extension(db): Extension<Db>,
+) -> Result<Teams, StatusCode> {
+    let match_url = params.match_url;
+
+    let value = get_value(Extension(&db), &match_url).await;
 
     let match_document: Html;
 
     if let Some(value) = value {
         match_document = Html::parse_document(&value);
     } else {
-        let match_request_text = reqwest::get(MATCH)
+        let match_request_text = reqwest::get(&match_url)
             .await
             .expect("Could not download game")
             .text()
@@ -29,7 +40,7 @@ pub(crate) async fn get_teams(Extension(db): Extension<Db>) -> Result<Teams, Sta
 
         let value = set_value(
             Extension(&db),
-            MATCH.to_string(),
+            match_url.to_string(),
             match_request_text.clone(),
         )
         .await;

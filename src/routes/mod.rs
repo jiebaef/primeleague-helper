@@ -1,6 +1,9 @@
-use crate::index::get_index;
-use crate::teams::get_teams;
+pub mod index;
+pub mod teams;
+
+use crate::routes::index::get_index;
 use axum::{routing::get, Router};
+use teams::get_teams;
 
 pub(crate) fn add_routes(router: Router) -> Router {
     let router = router

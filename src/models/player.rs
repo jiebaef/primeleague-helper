@@ -5,10 +5,3 @@ pub(crate) struct Player {
     pub link: String,
     pub game_account: String,
 }
-
-#[derive(Debug)]
-pub(crate) struct Team {
-    pub name: String,
-    pub data: Vec<Player>,
-    pub opgg: String,
-}

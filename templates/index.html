@@ -1,10 +1,53 @@
 {% extends "base.html" %}
 
+{% block head %}
+<style>
+div.loading-indicator {
+	display: none;
+}
+div.htmx-request.loading-indicator {
+	display: inline;
+}
+
+button.loading-indicator {
+	display: inline;
+}
+button.htmx-request.loading-indicator {
+	display: none;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- <h1>Split: <span id="spilt-span" hx-get="/split" hx-target="this" hx-trigger="load" hx-swap="outerHTML">Loading...</span></h1> -->
 
-<div id="list" hx-get="/teams" hx-target="this" hx-trigger="load" hx-swap="outerHTML">
-	Loading...
+<form hx-get="/teams"
+	hx-target="#game" 
+	hx-swap="outerHTML" 
+	hx-params="match_url" 
+	hx-indicator=".loading-indicator">
+
+	<input type="text" 
+		name="match_url" 
+		value="https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve"
+		style="width: 100%; margin-bottom: 0.5rem"
+	/>
+	<br />
+	<button type="submit" class="loading-indicator">
+		Request Game
+	</button>
+	
+</form>
+
+
+<div id="game" style="margin: 0.5rem">
+	<div id="loading-indicator" class="loading-indicator">
+	    Loading...
+	</div>
 </div>
+
+<!-- <div id="list" hx-get="/teams" hx-target="this" hx-trigger="load" hx-swap="outerHTML"> -->
+<!-- 	Loading... -->
+<!-- </div> -->
 
 {% endblock %}
