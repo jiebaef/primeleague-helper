@@ -14,6 +14,7 @@ use urlencoding::encode;
 #[derive(Deserialize)]
 pub struct GetTeamsParameters {
     pub match_url: String,
+    pub team_name: String,
 }
 
 #[axum::debug_handler]
@@ -67,10 +68,10 @@ pub(crate) async fn get_teams(
         }
         Err(e) => {
             if e == "Could not retrieve teams" {
-                let teams = extract_teams_teamspage(match_document, selectors);
-                match teams {
-                    Ok(teams) => {
-                        return Ok(Teams { data: teams });
+                let team = extract_teams_teamspage(match_document, params.team_name, selectors);
+                match team {
+                    Ok(team) => {
+                        return Ok(Teams { data: vec![team] });
                     }
                     Err(e) => {
                         eprintln!("{:?}", e);
@@ -87,22 +88,34 @@ pub(crate) async fn get_teams(
 
 fn extract_teams_teamspage(
     match_document: Html,
+    team_name: String,
     selectors: Selectors,
-) -> Result<Vec<Team>, String> {
-    let mut teams: Vec<Team> = Vec::new();
-
+) -> Result<Team, String> {
     let team_names = get_team_names(&match_document, selectors.team_names);
 
     let team_links = get_team_links(&match_document, selectors.team_links);
 
-    let split_link = get_split_link(&match_document, selectors.split_link);
-    if split_link.is_none() {
-        return Err("Could not retrieve split_link from website".into());
-    }
-    let split_link = split_link.unwrap();
+    // let split_link = get_split_link(&match_document, selectors.split_link);
+    // if split_link.is_none() {
+    //     return Err("Could not retrieve split_link from website".into());
+    // }
+    // let split_link = split_link.unwrap();
 
-    todo!("implement fallback");
-    for table_rows in match_document.select(&selectors.team_links) {}
+    let zipped_teams = team_names.into_iter().zip(team_links.into_iter());
+    for (name, link) in zipped_teams {
+        println!("name: {:?}", name);
+        if team_name.to_uppercase() != name.to_uppercase() {
+            // println!("team_name: {:?}", team_name);
+            println!("team_link: {:?}", link);
+            todo!("retrieve accounts from team");
+        }
+    }
+
+    // println!("zipped: {:?}", zipped);
+
+    // println!("team_names: {:?}", team_names);
+    // println!("team_links: {:?}", team_links);
+    // println!("split_link: {:?}", split_link);
 
     Err("not implemented".into())
 }
@@ -111,6 +124,7 @@ fn extract_teams_matchpage(
     match_document: Html,
     selectors: Selectors,
 ) -> Result<Vec<Team>, String> {
+    return Err("Could not retrieve teams".into());
     println!(">extract_teams()");
     let mut teams: Vec<Team> = Vec::new();
 
@@ -268,7 +282,9 @@ fn get_team_links(match_document: &Html, team_links_selector: Selector) -> Vec<S
     let mut team_links: Vec<String> = Vec::new();
 
     for team_link in match_document.select(&team_links_selector) {
-        team_links.push(elementref_text(&team_link, None));
+        if let Some(link) = team_link.value().attr("href") {
+            team_links.push(link.into());
+        }
     }
 
     team_links

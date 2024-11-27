@@ -24,9 +24,14 @@ button.htmx-request.loading-indicator {
 <form hx-get="/teams"
 	hx-target="#game" 
 	hx-swap="outerHTML" 
-	hx-params="match_url" 
+	hx-params="match_url,team_name" 
 	hx-indicator=".loading-indicator">
 
+	<input type="text" 
+		name="team_name" 
+		value="HOME"
+		style="width: 100%; margin-bottom: 0.5rem"
+	/>
 	<input type="text" 
 		name="match_url" 
 		value="https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve"
