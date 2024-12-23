@@ -24,39 +24,9 @@ pub(crate) async fn get_teams(
     Extension(selectors): Extension<Selectors>,
 ) -> Result<Teams, StatusCode> {
     println!(">get_teams()");
-    let match_url = params.match_url;
-
-    let value = get_value(Extension(&db), &match_url).await;
-
-    let match_document: Html;
-
-    if let Some(value) = value {
-        match_document = Html::parse_document(&value);
-    } else {
-        let match_request_text = reqwest::get(&match_url)
-            .await
-            .expect("Could not download game")
-            .text()
-            .await
-            .expect("Could not read text from response");
-
-        let value = set_value(
-            Extension(&db),
-            match_url.to_string(),
-            match_request_text.clone(),
-        )
-        .await;
-
-        match value {
-            Ok(value) => {
-                match_document = Html::parse_document(&value);
-            }
-            Err(e) => {
-                eprintln!("{:?}", e);
-                return Err(StatusCode::INTERNAL_SERVER_ERROR);
-            }
-        }
-    }
+    let match_document = get_match_document(params.match_url, Extension(db))
+        .await
+        .expect("could not parse match_document");
 
     let teams = extract_teams_matchpage(match_document.clone(), selectors.clone());
 
@@ -82,6 +52,48 @@ pub(crate) async fn get_teams(
                 eprintln!("{:?}", e);
                 return Err(reqwest::StatusCode::INTERNAL_SERVER_ERROR);
             }
+        }
+    }
+}
+
+async fn get_match_document(
+    match_url: String,
+    Extension(db): Extension<Db>,
+) -> Result<Html, StatusCode> {
+    let mut value = get_value(Extension(&db), &match_url).await;
+
+    if value.is_some() {
+        let match_request_text = reqwest::get(&match_url)
+            .await
+            .expect("Could not download game")
+            .text()
+            .await
+            .expect("Could not read text from response");
+
+        let stored_value = set_value(
+            Extension(&db),
+            match_url.to_string(),
+            match_request_text.clone(),
+        )
+        .await;
+        match stored_value {
+            Ok(stored_value) => value = Some(stored_value),
+            Err(e) => {
+                eprintln!("{:?}", e);
+                return Err(StatusCode::INTERNAL_SERVER_ERROR);
+            }
+        }
+    };
+
+    match value {
+        Some(value) => {
+            let match_document: Html = Html::parse_document(&value);
+
+            return Ok(match_document);
+        }
+        None => {
+            eprintln!("HTML request body could not be retrieved or stored");
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     }
 }
