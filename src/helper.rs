@@ -1,6 +1,15 @@
 use scraper::{ElementRef, Selector};
 
-use crate::Selectors;
+#[derive(Clone)]
+pub struct Selectors {
+    pub(crate) logs: Selector,
+    pub(crate) action_span: Selector,
+    pub(crate) split_link: Selector,
+    pub(crate) team_names: Selector,
+    pub(crate) team_links: Selector,
+    pub(crate) team_participants: Selector,
+    pub(crate) game_account: Selector,
+}
 
 pub(crate) fn elementref_text(element: &ElementRef<'_>, join_by: Option<&str>) -> String {
     return element
@@ -9,7 +18,7 @@ pub(crate) fn elementref_text(element: &ElementRef<'_>, join_by: Option<&str>) -
         .join(join_by.unwrap_or(" "));
 }
 
-pub(crate) fn init_selectors() -> Selectors {
+pub fn init_selectors() -> Selectors {
     Selectors {
         logs: Selector::parse("section.league-match-logs > div > div > div > table.table.table-flex.table-responsive.table-static > tbody > tr").expect("Could not create logs_selector"),
 

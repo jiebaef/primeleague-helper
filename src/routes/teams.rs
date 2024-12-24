@@ -1,8 +1,7 @@
 use crate::db::{get_value, set_value, Db};
-use crate::helper::elementref_text;
+use crate::helper::{elementref_text, Selectors};
 use crate::models::{player::Player, team::Team};
 use crate::templates::teams::Teams;
-use crate::Selectors;
 
 use axum::extract::Query;
 use axum::http::StatusCode;

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 
-pub(crate) type Db = Arc<RwLock<HashMap<String, String>>>;
+pub type Db = Arc<RwLock<HashMap<String, String>>>;
 
 pub(crate) async fn get_value(Extension(ref db): Extension<&Db>, key: &str) -> Option<String> {
     // println!("DB,GET,{}", key);

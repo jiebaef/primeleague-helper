@@ -1,31 +1,14 @@
-mod db;
-mod helper;
-mod models;
-mod routes;
-mod templates;
-
-use crate::db::Db;
-use crate::helper::init_selectors;
+use primeleague_helper::db::Db;
+use primeleague_helper::helper::init_selectors;
+use primeleague_helper::routes::add_routes;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use axum::{Extension, Router};
-use scraper::Selector;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
-
-#[derive(Clone)]
-pub(crate) struct Selectors {
-    pub(crate) logs: Selector,
-    pub(crate) action_span: Selector,
-    pub(crate) split_link: Selector,
-    pub(crate) team_names: Selector,
-    pub(crate) team_links: Selector,
-    pub(crate) team_participants: Selector,
-    pub(crate) game_account: Selector,
-}
 
 #[tokio::main]
 async fn main() {
@@ -33,7 +16,7 @@ async fn main() {
     let selectors = init_selectors();
 
     let router = Router::new();
-    let app = routes::add_routes(router)
+    let app = add_routes(router)
         .nest_service("/css", ServeDir::new("static/css"))
         .layer(Extension(db))
         .layer(Extension(selectors));

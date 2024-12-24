@@ -1,5 +1,5 @@
 #[derive(Debug)]
-pub(crate) struct Player {
+pub struct Player {
     pub id: String,
     pub name: String,
     pub link: String,
