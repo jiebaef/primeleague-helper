@@ -1,34 +1,23 @@
-FROM rust:1.75 AS builder
+FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
+WORKDIR /primeleague-helper
 
-RUN apt-get update -y && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory inside the container
-WORKDIR /app
-
-# Copy the application source code
+# Prepare dependency and build caching
+FROM chef AS planner
 COPY . .
+RUN cargo chef prepare --recipe-path recipe.json
 
-# Build the application in release mode
-RUN cargo build --release
+FROM chef AS builder 
+COPY --from=planner /primeleague-helper/recipe.json recipe.json
+# Build and cache dependencies
+RUN cargo chef cook --release --recipe-path recipe.json
+# Build application
+COPY . .
+RUN cargo build --release --bin primeleague-helper
 
-# Use a minimal base image for the final build
-FROM debian:bookworm-slim
-
-RUN apt-get update -y && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
-
-# Set up a non-root user
-RUN useradd -m appuser
-WORKDIR /home/appuser
-
-# Copy the compiled binary from the builder stage
-COPY --from=builder /app/target/release/primeleague-helper ./primeleague-helper
-
-# Ensure the binary is executable
-RUN chmod +x primeleague-helper
-
-# Expose the required port
+# Run the app
+FROM debian:bookworm-slim AS runtime
+RUN apt-get update -y && apt-get install -y libssl3 && rm -rf /var/lib/apt/lists/*
+WORKDIR /primeleague-helper
+COPY --from=builder /primeleague-helper/target/release/primeleague-helper /usr/local/bin
+ENTRYPOINT ["/usr/local/bin/primeleague-helper"]
 EXPOSE 42069
-
-# Run the application as the non-root user
-USER appuser
-CMD ["./primeleague-helper"]
