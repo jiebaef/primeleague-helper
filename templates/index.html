@@ -21,31 +21,63 @@ button.htmx-request.loading-indicator {
 {% block content %}
 <!-- <h1>Split: <span id="spilt-span" hx-get="/split" hx-target="this" hx-trigger="load" hx-swap="outerHTML">Loading...</span></h1> -->
 
-<form hx-get="/teams"
+<!-- <form hx-get="/teams" -->
+<!-- 	hx-target="#game"  -->
+<!-- 	hx-swap="outerHTML"  -->
+<!-- 	hx-params="match_url,team_name"  -->
+<!-- 	hx-indicator=".loading-indicator"> -->
+<!---->
+<!-- 	<input type="text"  -->
+<!-- 		name="team_name"  -->
+<!-- 		value="HOME" -->
+<!-- 		style="width: 100%; margin-bottom: 0.5rem" -->
+<!-- 	/> -->
+<!-- 	<input type="text"  -->
+<!-- 		name="match_url"  -->
+<!-- 		value="https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve" -->
+<!-- 		style="width: 100%; margin-bottom: 0.5rem" -->
+<!-- 	/> -->
+<!-- 	<br /> -->
+<!-- 	<button type="submit" class="loading-indicator"> -->
+<!-- 		Request Game -->
+<!-- 	</button> -->
+<!-- 	 -->
+<!-- </form> -->
+<!---->
+<!---->
+<!-- <div id="game" style="margin: 0.5rem"> -->
+<!-- 	<div id="loading-indicator" class="loading-indicator"> -->
+<!-- 	    Loading... -->
+<!-- 	</div> -->
+<!-- </div> -->
+
+
+<!-- <form hx-get="/new_teams" -->
+<form hx-get="/get_all_matches"
 	hx-target="#game" 
 	hx-swap="outerHTML" 
-	hx-params="match_url,team_name" 
+	hx-params="my_team_name,team_url" 
 	hx-indicator=".loading-indicator">
 
 	<input type="text" 
-		name="team_name" 
+		name="my_team_name" 
 		value="HOME"
 		style="width: 100%; margin-bottom: 0.5rem"
 	/>
 	<input type="text" 
-		name="match_url" 
-		value="https://www.primeleague.gg/leagues/matches/1125918-melo-honigmelonen-vs-slayed-beasts-resolve"
+		name="team_url" 
+		value="https://www.primeleague.gg/de/leagues/prm/3181-spring-split-202425/teams/206205-melo-honigmelonen"
 		style="width: 100%; margin-bottom: 0.5rem"
 	/>
 	<br />
 	<button type="submit" class="loading-indicator">
-		Request Game
+		Request Data
 	</button>
-	
 </form>
 
 
 <div id="game" style="margin: 0.5rem">
+	get_all_matches
 	<div id="loading-indicator" class="loading-indicator">
 	    Loading...
 	</div>
