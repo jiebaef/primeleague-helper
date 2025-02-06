@@ -97,6 +97,7 @@ on_success = "back" # so that we don't open the browser at each change
 # on every change (an alternative would be to use the 'F5' key manually in bacon).
 # If you often use this job, it makes sense to override the 'r' key by adding
 # a binding `r = job:run-long` at the end of this file .
+# [jobs.run-long]
 [jobs.run]
 command = [
     "cargo", "run",
