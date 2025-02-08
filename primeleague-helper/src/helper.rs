@@ -2,13 +2,7 @@ use scraper::{ElementRef, Selector};
 
 #[derive(Clone)]
 pub struct Selectors {
-    pub(crate) logs: Selector,
-    pub(crate) action_span: Selector,
-    pub(crate) split_link: Selector,
-    pub(crate) team_names: Selector,
-    pub(crate) team_links: Selector,
-    pub(crate) team_participants: Selector,
-    pub(crate) game_account: Selector,
+    pub(crate) team_tag: Selector,
 }
 
 pub(crate) fn elementref_text(element: &ElementRef<'_>, join_by: Option<&str>) -> String {
@@ -19,19 +13,11 @@ pub(crate) fn elementref_text(element: &ElementRef<'_>, join_by: Option<&str>) -
 }
 
 pub fn init_selectors() -> Selectors {
+    fn new(selector_name: &str, selector: &str) -> Selector {
+        Selector::parse(selector)
+            .expect(&format!("could not create selector \"{}\"", selector_name))
+    }
     Selectors {
-        logs: Selector::parse("section.league-match-logs > div > div > div > table.table.table-flex.table-responsive.table-static > tbody > tr").expect("Could not create logs_selector"),
-
-        action_span: Selector::parse("td > span").expect("Could not create action_span_selector"),
-
-        split_link: Selector::parse("div.page-header-content > div > ul > li.breadcrumbs-item:nth-child(2) > a",).expect("Could not create split_selector"),
-
-        team_names: Selector::parse("div.content-match-head-team > div > div > a > h2").expect("Could not create team_names_selector"),
-
-        team_links: Selector::parse("div.content-match-head-team-titles > a").expect("Could not create team_names_selector"),
-
-        team_participants: Selector::parse("div").expect("Could not create team_names_selector"),
-
-        game_account: Selector::parse("ul.quick-info > li > span[title*=\"League of Legends » LoL Summoner Name\"]",).expect("could not create game account selector"),
+        team_tag: new("team_name", "div#page-container > header.page-block.page-header > div.block-content > div.page-title > h1"),
     }
 }
