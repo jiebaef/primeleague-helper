@@ -1,2 +1,15 @@
-<div id="game">
+<div id="game" style="margin: 0.5rem">
+	<div>
+		<div>Tag: {{ tag }}</div>
+	</div>
+	<div>
+		<div>Matches</div>
+		<div>
+			<ul>
+				{% for match in matches %}
+				{% include "new_teams_matches.html" %}
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
 </div>

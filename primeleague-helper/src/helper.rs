@@ -3,13 +3,14 @@ use scraper::{ElementRef, Selector};
 #[derive(Clone)]
 pub struct Selectors {
     pub(crate) team_tag: Selector,
+    pub(crate) team_matches: Selector,
 }
 
 pub(crate) fn elementref_text(element: &ElementRef<'_>, join_by: Option<&str>) -> String {
     return element
         .text()
         .collect::<Vec<_>>()
-        .join(join_by.unwrap_or(" "));
+        .join(join_by.unwrap_or(" ").trim());
 }
 
 pub fn init_selectors() -> Selectors {
@@ -19,5 +20,6 @@ pub fn init_selectors() -> Selectors {
     }
     Selectors {
         team_tag: new("team_name", "div#page-container > header.page-block.page-header > div.block-content > div.page-title > h1"),
+        team_matches: new("team_matches", "ul.league-stage-matches > li > table > tbody > tr"),
     }
 }
