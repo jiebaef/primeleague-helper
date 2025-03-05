@@ -47,7 +47,11 @@ pub(crate) async fn get_new_teams(
     }
     let team_tag = team_tag.unwrap();
 
-    let matches = get_matches(&document, &selectors);
+    let re: regex::Regex = regex::Regex::new(
+        r"(?<team1>\w+)\s*(?<win1>\d{0,1})\s*:{0,1}\s*(?<win2>\d{0,1})\s*(?<team2>\w+)",
+    )
+    .unwrap();
+    let matches = get_matches(&document, &selectors, re);
     if matches.is_none() {
         return Err(templates::error::Error {
             err: StatusCode::INTERNAL_SERVER_ERROR.to_string(),
@@ -76,14 +80,32 @@ fn get_team_tag(html: &Html, selectors: &Selectors) -> Option<String> {
     Some(team_tag.unwrap().into())
 }
 
-fn get_matches(html: &Html, selectors: &Selectors) -> Option<Vec<templates::new_teams::PlMatch>> {
+fn get_matches(
+    html: &Html,
+    selectors: &Selectors,
+    re: regex::Regex,
+) -> Option<Vec<templates::new_teams::PlMatch>> {
     let matches = html.select(&selectors.team_matches);
 
     let mut pl_matches = Vec::new();
     for games in matches {
-        pl_matches.push(templates::new_teams::PlMatch {
-            val: elementref_text(&games, None).replace("\n", ""),
-        })
+        let val = elementref_text(&games, None).replace("\n", "");
+        let x = val.clone();
+        println!("{x}");
+        if let Some(captures) = re.captures(&x) {
+            println!(
+                "Team 1: [{},\t{},\t{}]\t\t||\t\tTeam 2 [{},\t{},\t{}]",
+                &captures["team1"],
+                &captures["win1"],
+                &captures["win1"].len(),
+                &captures["team2"],
+                &captures["win2"],
+                &captures["win2"].len()
+            );
+        }
+        println!("");
+
+        pl_matches.push(templates::new_teams::PlMatch { val })
     }
 
     Some(pl_matches)
