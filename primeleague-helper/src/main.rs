@@ -15,6 +15,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + 'static>> {
     dotenvy::dotenv().ok();
 
     let db_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    // let db_url = "";
     let pool = PgPoolOptions::new().connect(&db_url).await?;
 
     let db: Db = Arc::new(RwLock::new(HashMap::new()));
