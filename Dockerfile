@@ -9,11 +9,10 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM chef AS builder 
 COPY --from=planner /primeleague-helper/recipe.json recipe.json
 # Build and cache dependencies
-# RUN cargo chef cook --release --recipe-path recipe.json
+RUN cargo chef cook --release --recipe-path recipe.json
 # Build application
 COPY . .
-RUN echo $DATABASE_URL
-# RUN cargo build --release --bin primeleague-helper
+RUN cargo build --release --bin primeleague-helper
 
 # Run the app
 FROM debian:bookworm-slim AS runtime
